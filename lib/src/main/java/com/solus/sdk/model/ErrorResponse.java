@@ -4,10 +4,7 @@ public class ErrorResponse {
 
     private String responseMessage;
     private Integer responseCode;
-    
-    
-  
-    
+
 	public ErrorResponse() {
 		
 	}

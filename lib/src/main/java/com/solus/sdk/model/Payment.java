@@ -21,7 +21,7 @@ public class Payment {
 		this.ipin = ipin;
 		this.tranAmount = tranAmount;
 	}
-	
+
 	public Float getTranAmount() {
 		return tranAmount;
 	}
@@ -53,11 +53,5 @@ public class Payment {
 	public void setIPin(String ipin) {
 		this.ipin = ipin;
 	}
-	
-	
-	
 
-    
-
-    
 }
