@@ -162,7 +162,7 @@ public class NOEBSClient implements ResponseData {
     }
 
     public String serverUrl() {
-        String host = "https://beta.soluspay.net/api/consumer/";
+        String host = "https://beta.soluspay.net/api/v1/purchase";
         URI builder = URI.create(host);
         return builder.toString();
     }
