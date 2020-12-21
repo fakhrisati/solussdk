@@ -1,4 +1,6 @@
-# solussdk
+# solussdk            
+
+[![](https://jitpack.io/v/fakhrisati/solussdk.svg)](https://jitpack.io/#fakhrisati/solussdk)
 
 ### Add it in your root build.gradle
 
