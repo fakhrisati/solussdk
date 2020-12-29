@@ -7,8 +7,25 @@ import com.solus.sdk.model.BaseResponse;
 import com.solus.sdk.model.ErrorResponse;
 import com.solus.sdk.model.Payment;
 import com.solus.sdk.model.Response;
+import com.solus.sdk.model.types;
 import com.solus.sdk.noebscall.NOEBSClient;
 
+
+/*
+* How to use noebs SDK
+* - special payment:
+* use types.SpecialPayment
+* - Zain:
+* use types.ZainTopUp
+* - MTN:
+* use types.MTNTopUp
+* - Sudani:
+* use types.SudaniTopUp
+* - NEC:
+* use types.NEC
+* - E15:
+* use types.E15
+* */
 public class Library {
     public static void main(String[] args) {
 		Payment payment = new Payment("gdljdfslkgjf;lgks", "123456789101112131", "2206", "1234", 10f);
