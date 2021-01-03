@@ -16,8 +16,37 @@ public class Request implements Serializable {
     private String expDate;
     private String IPIN;
     private Float tranAmount;
+	private String paymentInfo;
+	private String payeeId;
+
+	public String getPaymentInfo() {
+		return paymentInfo;
+	}
+
+	public void setPaymentInfo(String paymentInfo) {
+		this.paymentInfo = paymentInfo;
+	}
+
+	public String getPayeeId() {
+		return payeeId;
+	}
+
+	public void setPayeeId(String payeeId) {
+		this.payeeId = payeeId;
+	}
+
+	public String getServiceProviderId() {
+		return serviceProviderId;
+	}
+
+	public void setServiceProviderId(String serviceProviderId) {
+		this.serviceProviderId = serviceProviderId;
+	}
+
+	private String serviceProviderId;
     private String tranCurrencyCode = "SDG";
 	private String UUID;
+
 
 	public String getUUID() {
 		return UUID;
@@ -26,7 +55,6 @@ public class Request implements Serializable {
 	public void setUUID(String UUID) {
 		this.UUID = UUID;
 	}
-
 
 
     public String getDate(){
@@ -65,7 +93,6 @@ public class Request implements Serializable {
 	public void setTranAmount(Float tranAmount) {
 		this.tranAmount = tranAmount;
 	}
-
 	public String getTranCurrencyCode() {
 		return tranCurrencyCode;
 	}

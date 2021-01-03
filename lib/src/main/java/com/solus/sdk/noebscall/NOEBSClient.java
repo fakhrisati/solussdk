@@ -18,6 +18,7 @@ import com.solus.sdk.model.Payment;
 import com.solus.sdk.model.Request;
 import com.solus.sdk.model.Response;
 import com.solus.sdk.model.ResponseData;
+import com.solus.sdk.model.types;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -81,21 +82,14 @@ public class NOEBSClient implements ResponseData {
     }
 
 
-    private void init() {
-
-    }
-
     @Override
     public BaseResponse<?> getResponse(Payment paymentData) {
-
         BaseResponse<Response> successBaseResponse = new BaseResponse<>();
         BaseResponse<ErrorResponse> errorBaseResponse = new BaseResponse<>();
         OkHttpClient client = new OkHttpClient();
-
         if (this.pubKey != null && this.pubKey.isEmpty()) {
             this.pubKey = this.getKey();
         }
-
         Gson gson = new Gson();
         String ipin = IPIN.getIPINBlock(paymentData.getIpin(), this.pubKey, uuid);
         Request request = new Request();
@@ -105,15 +99,17 @@ public class NOEBSClient implements ResponseData {
         request.setTranAmount(paymentData.getTranAmount());
         request.setUUID(uuid);
         request.setIPIN(ipin);
-
-
+        request.setPaymentInfo(paymentData.getPaymentInfo());
+        request.setPayeeId(paymentData.getPayeeId());
         String json;
         try {
             json = gson.toJson(request, Request.class);
 
+            // TRY TO USE DIFFERENT PAYMENT HERE
+//            log("EBS request url", serverUrl(paymentData.getBillerId()));
             RequestBody body = RequestBody.create(json, JSON);
             okhttp3.Request httpRequest = new okhttp3.Request.Builder()
-                    .url(serverUrl())
+                    .url(serverUrl(paymentData.getBillerId()))
                     .post(body)
                     .build();
 
@@ -161,8 +157,14 @@ public class NOEBSClient implements ResponseData {
         return false;
     }
 
-    public String serverUrl() {
-        String host = "https://beta.soluspay.net/api/v1/purchase";
+    public String serverUrl(types billerId) {
+        String host;
+        if (billerId == types.ZainTopUp || billerId == types.MTNTopUp || billerId == types.SudaniTopUp || billerId == types.E15 || billerId == types.NEC) {
+            host = "https://beta.soluspay.net/api/v1/purchase";
+        } else {
+            host = "https://beta.soluspay.net/api/v1/purchase";
+        }
+
         URI builder = URI.create(host);
         return builder.toString();
     }
