@@ -1,7 +1,13 @@
 package com.solus.sdk.model;
 
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ErrorResponse {
 
+	private String message;
+	private String status;
     private String responseMessage;
     private Integer responseCode;
 
