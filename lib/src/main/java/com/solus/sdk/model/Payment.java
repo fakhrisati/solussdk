@@ -9,6 +9,7 @@ public class Payment {
     private String ipin;
     private Float tranAmount;
     private String payeeId;
+    private String serviceProviderId;
 
 	public String getPayeeId() {
 		return payeeId;
@@ -43,20 +44,22 @@ public class Payment {
 		
 	}
 
-	public Payment(String apiKey, String pan, String expDate, String ipin, Float tranAmount) {
+	public Payment(String apiKey, String pan, String expDate, String ipin, Float tranAmount , String serviceProviderId) {
 		this.apiKey = apiKey;
 		this.pan = pan;
 		this.expDate = expDate;
 		this.ipin = ipin;
 		this.tranAmount = tranAmount;
+		this.serviceProviderId = serviceProviderId;
 	}
 
-	public Payment(String apiKey, String pan, String expDate, String ipin, Float tranAmount, types billerId, String paymentInfo) {
+	public Payment(String apiKey, String pan, String expDate, String ipin, Float tranAmount, types billerId, String paymentInfo , String serviceProviderId) {
 		this.apiKey = apiKey;
 		this.pan = pan;
 		this.expDate = expDate;
 		this.ipin = ipin;
 		this.tranAmount = tranAmount;
+		this.serviceProviderId = serviceProviderId;
 		/*
 		this.billerId = billerId;
 		this.paymentInfo = paymentInfo;
@@ -123,6 +126,15 @@ public class Payment {
 	public void setIPin(String ipin) {
 		this.ipin = ipin;
 	}
+
+	public String getServiceProviderId() {
+		return serviceProviderId;
+	}
+
+	public void setServiceProviderId(String serviceProviderId) {
+		this.serviceProviderId = serviceProviderId;
+	}
+	
 
 }
 

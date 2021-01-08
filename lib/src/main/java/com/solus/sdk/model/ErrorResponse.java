@@ -1,30 +1,40 @@
 package com.solus.sdk.model;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 public class ErrorResponse {
 
-    private String responseMessage;
-    private Integer responseCode;
+    private String message;
+    private Integer code;
+    private String status;
+   private  Map<String, String> details;
 
-	public ErrorResponse() {
-		
-	}
-	public ErrorResponse(String responseMessage, Integer responseCode) {
-		
-		this.responseMessage = responseMessage;
-		this.responseCode = responseCode;
-	}
-	public String getResponseMessage() {
-		return responseMessage;
-	}
-	public void setResponseMessage(String responseMessage) {
-		this.responseMessage = responseMessage;
-	}
-	public Integer getResponseCode() {
-		return responseCode;
-	}
-	public void setResponseCode(Integer responseCode) {
-		this.responseCode = responseCode;
-	}
+   public String getMessage() {
+	return message;
+}
+public void setMessage(String message) {
+	this.message = message;
+}
+public Integer getCode() {
+	return code;
+}
+public void setCode(Integer code) {
+	this.code = code;
+}
+public String getStatus() {
+	return status;
+}
+public void setStatus(String status) {
+	this.status = status;
+}
+public Map<String, String> getDetails() {
+	return details;
+}
+public void setDetails(Map<String, String> details) {
+	this.details = details;
+}
 
-    
+   
 }

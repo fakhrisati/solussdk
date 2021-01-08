@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -19,6 +20,7 @@ import com.solus.sdk.model.Request;
 import com.solus.sdk.model.Response;
 import com.solus.sdk.model.ResponseData;
 import com.solus.sdk.model.types;
+import com.solus.sdk.util.SdkUtil;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -27,20 +29,23 @@ import okhttp3.RequestBody;
 
 public class NOEBSClient implements ResponseData {
 
-    private String pubKey;
-    static String uuid = UUID.randomUUID().toString();
+	private String pubKey;
+    static String uuid = SdkUtil.getUuid();
 
     OkHttpClient client = new OkHttpClient();
     ObjectMapper mapper = new ObjectMapper(); //marshalling and unmarshalling class
     public static final MediaType JSON
             = MediaType.get("application/json; charset=utf-8");
-
+    
+    
+    
+    
     private String getKey() {
-        Key k = new Key();
-        k.applicationId = "ACTSCon";
-        k.tranDateTime = "20122112500";
-        k.UUID = UUID.randomUUID().toString();
-
+    	Key k = new Key();
+        k.setApplicationId("ACTSCon");
+        k.setTranDateTime(SdkUtil.getDate());
+        k.setUUID(uuid);
+        
         Gson gson = new Gson();
         String json;
         try {
@@ -54,7 +59,7 @@ public class NOEBSClient implements ResponseData {
 
             okhttp3.Response response = client.newCall(httpRequest).execute();
             System.out.println(response.code());
-            BaseResponse errorBaseResponse;
+          
 
             if (response.code() == 200) {
                 Type keyType = new TypeToken<Map<String, KeyResponse>>() {
@@ -62,8 +67,10 @@ public class NOEBSClient implements ResponseData {
 
                 Map<String, KeyResponse> responseBody = gson.fromJson(response.body().string(), keyType);
 
-                this.pubKey = responseBody.get("ebs_response").pubKeyValue;
+                pubKey = responseBody.get("ebs_response").pubKeyValue;
 
+                System.out.println(pubKey);
+                
                 return responseBody.get("ebs_response").pubKeyValue;
 
             }
@@ -87,9 +94,9 @@ public class NOEBSClient implements ResponseData {
         BaseResponse<Response> successBaseResponse = new BaseResponse<>();
         BaseResponse<ErrorResponse> errorBaseResponse = new BaseResponse<>();
         OkHttpClient client = new OkHttpClient();
-        if (this.pubKey != null && this.pubKey.isEmpty()) {
-            this.pubKey = this.getKey();
-        }
+        pubKey =  getKey();
+        if (pubKey != null && !pubKey.isEmpty()) {
+           
         Gson gson = new Gson();
         String ipin = IPIN.getIPINBlock(paymentData.getIpin(), this.pubKey, uuid);
         Request request = new Request();
@@ -101,6 +108,7 @@ public class NOEBSClient implements ResponseData {
         request.setIPIN(ipin);
         request.setPaymentInfo(paymentData.getPaymentInfo());
         request.setPayeeId(paymentData.getPayeeId());
+        request.setServiceProviderId(paymentData.getServiceProviderId());
         String json;
         try {
             json = gson.toJson(request, Request.class);
@@ -130,6 +138,11 @@ public class NOEBSClient implements ResponseData {
                 ErrorResponse errorResponse = mapper.readValue(responseBodey, ErrorResponse.class);
                 errorBaseResponse.setResponse(errorResponse);
                 return errorBaseResponse;
+            }else if (response.code() == 502) {
+                String responseBodey = response.body().string();
+                ErrorResponse errorResponse = mapper.readValue(responseBodey, ErrorResponse.class);
+                errorBaseResponse.setResponse(errorResponse);
+                return errorBaseResponse;
             }
 
         } catch (JsonMappingException e) {
@@ -145,10 +158,19 @@ public class NOEBSClient implements ResponseData {
 
         ErrorResponse errorResponse = errorBaseResponse.getResponse();
         errorResponse = new ErrorResponse();
-        errorResponse.setResponseCode(0);
-        errorResponse.setResponseMessage("SolusSDK error");
+        errorResponse.setCode(0);
+        errorResponse.setMessage("SolusSDK error");
         errorBaseResponse.setResponse(errorResponse);
         return errorBaseResponse;
+        }else {
+        	ErrorResponse errorResponse = errorBaseResponse.getResponse();
+        	 errorResponse = new ErrorResponse();
+             errorResponse.setCode(0);
+             errorResponse.setMessage("EBS Key error");
+             errorBaseResponse.setResponse(errorResponse);
+             return errorBaseResponse;
+        	
+        }
     }
 
     @Override
@@ -169,17 +191,35 @@ public class NOEBSClient implements ResponseData {
         return builder.toString();
     }
 
-    static class Key {
+    private class Key {
         String applicationId;
         String UUID;
         String tranDateTime;
+		public String getApplicationId() {
+			return applicationId;
+		}
+		public void setApplicationId(String applicationId) {
+			this.applicationId = applicationId;
+		}
+		public String getUUID() {
+			return UUID;
+		}
+		public void setUUID(String uUID) {
+			UUID = uUID;
+		}
+		public String getTranDateTime() {
+			return tranDateTime;
+		}
+		public void setTranDateTime(String tranDateTime) {
+			this.tranDateTime = tranDateTime;
+		}
+        
     }
 
     static class KeyResponse {
         String pubKeyValue;
 
     }
-
 
 }
 

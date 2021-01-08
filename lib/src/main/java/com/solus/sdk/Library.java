@@ -3,6 +3,9 @@
  */
 package com.solus.sdk;
 
+import java.util.List;
+import java.util.Map;
+
 import com.solus.sdk.model.BaseResponse;
 import com.solus.sdk.model.ErrorResponse;
 import com.solus.sdk.model.Payment;
@@ -28,7 +31,7 @@ import com.solus.sdk.noebscall.NOEBSClient;
 * */
 public class Library {
     public static void main(String[] args) {
-		Payment payment = new Payment("gdljdfslkgjf;lgks", "123456789101112131", "2206", "1234", 10f);
+		Payment payment = new Payment("gdljdfslkgjf;lgks", "123456789101112131", "2206", "1234", 10f,"456789");
 		NOEBSClient noebsClient = new NOEBSClient();
 		BaseResponse<?> response = noebsClient.getResponse(payment);
 		Object object = response.getResponse();
@@ -36,7 +39,14 @@ public class Library {
 			System.out.println(true);
 		}else if(object instanceof ErrorResponse){
 			ErrorResponse err =(ErrorResponse)object;
-			System.out.println(err.getResponseMessage());
+			System.out.println(err.getMessage());
+			 Map<String, String> details = err.getDetails();
+			if(!details.isEmpty())///if details not empty show messages
+				
+				 for(Map.Entry m:details.entrySet()){  
+					   System.out.println(m.getKey()+" : "+m.getValue());  
+					  }  
+		
 			System.out.println(false);
 		}else {
 			System.out.println("Error");
