@@ -1,16 +1,20 @@
 package com.solus.sdk.noebscall;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.solus.sdk.model.BaseResponse;
 import com.solus.sdk.model.ErrorResponse;
@@ -36,20 +40,18 @@ public class NOEBSClient implements ResponseData {
     ObjectMapper mapper = new ObjectMapper(); //marshalling and unmarshalling class
     public static final MediaType JSON
             = MediaType.get("application/json; charset=utf-8");
-    
-    
-    
-    
+
+    private final static Logger logger = Logger.getLogger(NOEBSClient.class.getName());
+
     private String getKey() {
-    	Key k = new Key();
-        k.setApplicationId("ACTSCon");
-        k.setTranDateTime(SdkUtil.getDate());
-        k.setUUID(uuid);
-        
+       Request key = new Request();
+       key.setUUID(UUID.randomUUID().toString());
+
         Gson gson = new Gson();
         String json;
         try {
-            json = mapper.writeValueAsString(k);
+            json = mapper.writeValueAsString(key);
+            logger.info("the response is: " + json);
 
             RequestBody body = RequestBody.create(json, JSON);
             okhttp3.Request httpRequest = new okhttp3.Request.Builder()
@@ -61,28 +63,39 @@ public class NOEBSClient implements ResponseData {
             System.out.println(response.code());
           
 
+            logger.info("the response message is: " + response.message());
             if (response.code() == 200) {
                 Type keyType = new TypeToken<Map<String, KeyResponse>>() {
                 }.getType();
-
                 Map<String, KeyResponse> responseBody = gson.fromJson(response.body().string(), keyType);
-
-                pubKey = responseBody.get("ebs_response").pubKeyValue;
-
-                System.out.println(pubKey);
-                
+                this.pubKey = responseBody.get("ebs_response").pubKeyValue;
                 return responseBody.get("ebs_response").pubKeyValue;
 
+            }else if (response.code() == 400){
+
+                logger.info(response.body().string());
+                Type keyType = new TypeToken<Map<String, KeyError>>() {
+                }.getType();
+
+                Map<String, KeyResponse> responseBody = gson.fromJson(response.body().string(), keyType);
+                this.pubKey = responseBody.get("ebs_response").pubKeyValue;
+                return responseBody.get("ebs_response").pubKeyValue;
+            }else{
+                logger.info(response.body().string());
+                logger.info(response.message());
+                logger.info(response.body().string());
             }
         } catch (JsonMappingException e) {
             // TODO Auto-generated catch block
+            logger.info("why the fuck i'm here!");
             e.printStackTrace();
+            logger.info(e.toString());
         } catch (JsonProcessingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
+            logger.info(e.toString());
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
+            logger.info(e.toString());
         }
         return "";
 
@@ -94,9 +107,13 @@ public class NOEBSClient implements ResponseData {
         BaseResponse<Response> successBaseResponse = new BaseResponse<>();
         BaseResponse<ErrorResponse> errorBaseResponse = new BaseResponse<>();
         OkHttpClient client = new OkHttpClient();
-        pubKey =  getKey();
-        if (pubKey != null && !pubKey.isEmpty()) {
-           
+
+        if (this.pubKey == null) {
+            this.pubKey = this.getKey();
+        }
+
+        logger.info("Example log from {}" + this.pubKey);
+
         Gson gson = new Gson();
         String ipin = IPIN.getIPINBlock(paymentData.getIpin(), this.pubKey, uuid);
         Request request = new Request();
@@ -108,12 +125,12 @@ public class NOEBSClient implements ResponseData {
         request.setIPIN(ipin);
         request.setPaymentInfo(paymentData.getPaymentInfo());
         request.setPayeeId(paymentData.getPayeeId());
-        request.setServiceProviderId(paymentData.getServiceProviderId());
+        request.setServiceProviderId("12345678");
         String json;
         try {
             json = gson.toJson(request, Request.class);
-
             // TRY TO USE DIFFERENT PAYMENT HERE
+            logger.info("the request to payment is: " + json);
 //            log("EBS request url", serverUrl(paymentData.getBillerId()));
             RequestBody body = RequestBody.create(json, JSON);
             okhttp3.Request httpRequest = new okhttp3.Request.Builder()
@@ -135,12 +152,19 @@ public class NOEBSClient implements ResponseData {
                 return errorBaseResponse;
             } else if (response.code() == 404) {
                 String responseBodey = response.body().string();
+
                 ErrorResponse errorResponse = mapper.readValue(responseBodey, ErrorResponse.class);
                 errorBaseResponse.setResponse(errorResponse);
                 return errorBaseResponse;
-            }else if (response.code() == 502) {
+            }else if (response.code() == 502) { // for ebs error messages
                 String responseBodey = response.body().string();
-                ErrorResponse errorResponse = mapper.readValue(responseBodey, ErrorResponse.class);
+
+                JsonObject jsonObject = gson.fromJson(responseBodey, JsonObject.class);
+
+                logger.info("gson response " + jsonObject.get("details").toString());
+                logger.info("ebs_error_502 is: " + responseBodey);
+                ErrorResponse errorResponse = mapper.readValue(jsonObject.get("details").toString(), ErrorResponse.class);
+                logger.info("error message: " + errorResponse.getResponseMessage());
                 errorBaseResponse.setResponse(errorResponse);
                 return errorBaseResponse;
             }
@@ -216,10 +240,25 @@ public class NOEBSClient implements ResponseData {
         
     }
 
-    static class KeyResponse {
-        String pubKeyValue;
 
+class Key {
+    String applicationId;
+    String UUID;
+    String tranDateTime;
+
+    public Key(String applicationId, String UUID, String tranDateTime) {
+        this.applicationId = applicationId;
+        this.UUID = UUID;
+        this.tranDateTime = tranDateTime;
     }
+}
 
+ class KeyResponse {
+    String pubKeyValue;
+}
+
+ class KeyError {
+    String message;
+    String code;
 }
 
