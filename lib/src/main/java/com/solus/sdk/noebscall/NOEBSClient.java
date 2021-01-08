@@ -71,8 +71,8 @@ public class NOEBSClient implements ResponseData {
                 this.pubKey = responseBody.get("ebs_response").pubKeyValue;
                 return responseBody.get("ebs_response").pubKeyValue;
 
-            }else if (response.code() == 400){
-
+            }else if (response.code() == 400) {
+                //FIXME(adonese) this is an error and it doesn't handle the error properly.
                 logger.info(response.body().string());
                 Type keyType = new TypeToken<Map<String, KeyError>>() {
                 }.getType();
@@ -80,6 +80,19 @@ public class NOEBSClient implements ResponseData {
                 Map<String, KeyResponse> responseBody = gson.fromJson(response.body().string(), keyType);
                 this.pubKey = responseBody.get("ebs_response").pubKeyValue;
                 return responseBody.get("ebs_response").pubKeyValue;
+                
+
+            }else if (response.code() == 502) {
+                String responseBodey = response.body().string();
+
+                JsonObject jsonObject = gson.fromJson(responseBodey, JsonObject.class);
+
+                logger.info("gson response " + jsonObject.get("details").toString());
+                logger.info("ebs_error_502 is: " + responseBodey);
+                ErrorResponse errorResponse = mapper.readValue(jsonObject.get("details").toString(), ErrorResponse.class);
+                logger.info("error message: " + errorResponse.getResponseMessage());
+                errorBaseResponse.setResponse(errorResponse);
+                return errorBaseResponse;
             }else{
                 logger.info(response.body().string());
                 logger.info(response.message());
@@ -100,7 +113,6 @@ public class NOEBSClient implements ResponseData {
         return "";
 
     }
-
 
     @Override
     public BaseResponse<?> getResponse(Payment paymentData) {
@@ -142,7 +154,8 @@ public class NOEBSClient implements ResponseData {
             System.out.println(response.code());
             if (response.code() == 200) {
                 String responseBody = response.body().string();
-                Response successRespose = mapper.readValue(responseBody, Response.class);
+                JsonObject jsonObject = gson.fromJson(responseBodey, JsonObject.class);
+                Response successRespose = mapper.readValue(jsonObject.get("ebs_response").toString(), Response.class);
                 successBaseResponse.setResponse(successRespose);
                 return successBaseResponse;
             } else if (response.code() == 400) {
