@@ -31,7 +31,7 @@ import com.solus.sdk.noebscall.NOEBSClient;
 * */
 public class Library {
     public static void main(String[] args) {
-		Payment payment = new Payment("gdljdfslkgjf;lgks", "123456789101112131", "2206", "1234", 10f,"456789");
+		Payment payment = new Payment("gdljdfslkgjf;lgks", "9222081700176714465", "2203", "0009", 1f,"456789");
 		NOEBSClient noebsClient = new NOEBSClient();
 		BaseResponse<?> response = noebsClient.getResponse(payment);
 		Object object = response.getResponse();

@@ -33,7 +33,7 @@ import okhttp3.RequestBody;
 
 public class NOEBSClient implements ResponseData {
 
-	private String pubKey;
+    private String pubKey;
     static String uuid = SdkUtil.getUuid();
 
     OkHttpClient client = new OkHttpClient();
@@ -41,11 +41,12 @@ public class NOEBSClient implements ResponseData {
     public static final MediaType JSON
             = MediaType.get("application/json; charset=utf-8");
 
+
     private final static Logger logger = Logger.getLogger(NOEBSClient.class.getName());
 
     private String getKey() {
-       Request key = new Request();
-       key.setUUID(UUID.randomUUID().toString());
+        Request key = new Request();
+        key.setUUID(UUID.randomUUID().toString());
 
         Gson gson = new Gson();
         String json;
@@ -61,18 +62,20 @@ public class NOEBSClient implements ResponseData {
 
             okhttp3.Response response = client.newCall(httpRequest).execute();
             System.out.println(response.code());
-          
+
 
             logger.info("the response message is: " + response.message());
             if (response.code() == 200) {
                 Type keyType = new TypeToken<Map<String, KeyResponse>>() {
                 }.getType();
                 Map<String, KeyResponse> responseBody = gson.fromJson(response.body().string(), keyType);
+
+
                 this.pubKey = responseBody.get("ebs_response").pubKeyValue;
                 return responseBody.get("ebs_response").pubKeyValue;
 
-            }else if (response.code() == 400) {
-                //FIXME(adonese) this is an error and it doesn't handle the error properly.
+            } else if (response.code() == 400) {
+
                 logger.info(response.body().string());
                 Type keyType = new TypeToken<Map<String, KeyError>>() {
                 }.getType();
@@ -80,20 +83,7 @@ public class NOEBSClient implements ResponseData {
                 Map<String, KeyResponse> responseBody = gson.fromJson(response.body().string(), keyType);
                 this.pubKey = responseBody.get("ebs_response").pubKeyValue;
                 return responseBody.get("ebs_response").pubKeyValue;
-                
-
-            }else if (response.code() == 502) {
-                String responseBodey = response.body().string();
-
-                JsonObject jsonObject = gson.fromJson(responseBodey, JsonObject.class);
-
-                logger.info("gson response " + jsonObject.get("details").toString());
-                logger.info("ebs_error_502 is: " + responseBodey);
-                ErrorResponse errorResponse = mapper.readValue(jsonObject.get("details").toString(), ErrorResponse.class);
-                logger.info("error message: " + errorResponse.getResponseMessage());
-                errorBaseResponse.setResponse(errorResponse);
-                return errorBaseResponse;
-            }else{
+            } else {
                 logger.info(response.body().string());
                 logger.info(response.message());
                 logger.info(response.body().string());
@@ -119,94 +109,90 @@ public class NOEBSClient implements ResponseData {
         BaseResponse<Response> successBaseResponse = new BaseResponse<>();
         BaseResponse<ErrorResponse> errorBaseResponse = new BaseResponse<>();
         OkHttpClient client = new OkHttpClient();
+        pubKey = getKey();
+        if (pubKey != null && !pubKey.isEmpty()) {
 
-        if (this.pubKey == null) {
-            this.pubKey = this.getKey();
-        }
 
-        logger.info("Example log from {}" + this.pubKey);
+            logger.info("working key value {}" + this.pubKey);
 
-        Gson gson = new Gson();
-        String ipin = IPIN.getIPINBlock(paymentData.getIpin(), this.pubKey, uuid);
-        Request request = new Request();
-        request.setPan(paymentData.getPan());
-        request.setIPIN(ipin);
-        request.setExpDate(paymentData.getExpDate());
-        request.setTranAmount(paymentData.getTranAmount());
-        request.setUUID(uuid);
-        request.setIPIN(ipin);
-        request.setPaymentInfo(paymentData.getPaymentInfo());
-        request.setPayeeId(paymentData.getPayeeId());
-        request.setServiceProviderId("12345678");
-        String json;
-        try {
-            json = gson.toJson(request, Request.class);
-            // TRY TO USE DIFFERENT PAYMENT HERE
-            logger.info("the request to payment is: " + json);
+            Gson gson = new Gson();
+            String ipin = IPIN.getIPINBlock(paymentData.getIpin(), this.pubKey, uuid);
+            Request request = new Request();
+            request.setPan(paymentData.getPan());
+            request.setIPIN(ipin);
+            request.setExpDate(paymentData.getExpDate());
+            request.setTranAmount(paymentData.getTranAmount());
+            request.setUUID(uuid);
+            request.setIPIN(ipin);
+            request.setPaymentInfo(paymentData.getPaymentInfo());
+            request.setPayeeId(paymentData.getPayeeId());
+            request.setServiceProviderId("0010050307");
+            String json;
+            try {
+                json = gson.toJson(request, Request.class);
+                // TRY TO USE DIFFERENT PAYMENT HERE
+                logger.info("the request to payment is: " + json);
 //            log("EBS request url", serverUrl(paymentData.getBillerId()));
-            RequestBody body = RequestBody.create(json, JSON);
-            okhttp3.Request httpRequest = new okhttp3.Request.Builder()
-                    .url(serverUrl(paymentData.getBillerId()))
-                    .post(body)
-                    .build();
+                RequestBody body = RequestBody.create(json, JSON);
+                okhttp3.Request httpRequest = new okhttp3.Request.Builder()
+                        .url(serverUrl(paymentData.getBillerId()))
+                        .post(body)
+                        .build();
 
-            okhttp3.Response response = client.newCall(httpRequest).execute();
-            System.out.println(response.code());
-            if (response.code() == 200) {
-                String responseBody = response.body().string();
-                JsonObject jsonObject = gson.fromJson(responseBodey, JsonObject.class);
-                Response successRespose = mapper.readValue(jsonObject.get("ebs_response").toString(), Response.class);
-                successBaseResponse.setResponse(successRespose);
-                return successBaseResponse;
-            } else if (response.code() == 400) {
-                String responseBodey = response.body().string();
-                ErrorResponse errorResponse = mapper.readValue(responseBodey, ErrorResponse.class);
-                errorBaseResponse.setResponse(errorResponse);
-                return errorBaseResponse;
-            } else if (response.code() == 404) {
-                String responseBodey = response.body().string();
+                okhttp3.Response response = client.newCall(httpRequest).execute();
+                System.out.println(response.code());
+                if (response.code() == 200) {
 
-                ErrorResponse errorResponse = mapper.readValue(responseBodey, ErrorResponse.class);
-                errorBaseResponse.setResponse(errorResponse);
-                return errorBaseResponse;
-            }else if (response.code() == 502) { // for ebs error messages
-                String responseBodey = response.body().string();
+                    Type keyType = new TypeToken<Map<String, Response>>() {
+                    }.getType();
+                    Map<String, Response> responseBody = gson.fromJson(response.body().string(), keyType);
+                    logger.info(responseBody.get("ebs_response").getResponseMessage());
 
-                JsonObject jsonObject = gson.fromJson(responseBodey, JsonObject.class);
+                    successBaseResponse.setResponse(responseBody.get("ebs_response"));
+                    return successBaseResponse;
+                } else if (response.code() == 400) {
+                    String responseBodey = response.body().string();
+                    ErrorResponse errorResponse = mapper.readValue(responseBodey, ErrorResponse.class);
+                    errorBaseResponse.setResponse(errorResponse);
+                    return errorBaseResponse;
+                } else if (response.code() == 404) {
+                    String responseBodey = response.body().string();
 
-                logger.info("gson response " + jsonObject.get("details").toString());
-                logger.info("ebs_error_502 is: " + responseBodey);
-                ErrorResponse errorResponse = mapper.readValue(jsonObject.get("details").toString(), ErrorResponse.class);
-                logger.info("error message: " + errorResponse.getResponseMessage());
-                errorBaseResponse.setResponse(errorResponse);
-                return errorBaseResponse;
+                    ErrorResponse errorResponse = mapper.readValue(responseBodey, ErrorResponse.class);
+                    errorBaseResponse.setResponse(errorResponse);
+                    return errorBaseResponse;
+                } else if (response.code() == 502) {
+                    String responseBodey = response.body().string();
+                    ErrorResponse errorResponse = mapper.readValue(responseBodey, ErrorResponse.class);
+                    errorBaseResponse.setResponse(errorResponse);
+                    return errorBaseResponse;
+                }
+
+            } catch (JsonMappingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (JsonProcessingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
 
-        } catch (JsonMappingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (JsonProcessingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+            ErrorResponse errorResponse = errorBaseResponse.getResponse();
+            errorResponse = new ErrorResponse();
+            errorResponse.setCode(0);
+            errorResponse.setMessage("SolusSDK error");
+            errorBaseResponse.setResponse(errorResponse);
+            return errorBaseResponse;
+        } else {
+            ErrorResponse errorResponse = errorBaseResponse.getResponse();
+            errorResponse = new ErrorResponse();
+            errorResponse.setCode(0);
+            errorResponse.setMessage("EBS Key error");
+            errorBaseResponse.setResponse(errorResponse);
+            return errorBaseResponse;
 
-        ErrorResponse errorResponse = errorBaseResponse.getResponse();
-        errorResponse = new ErrorResponse();
-        errorResponse.setCode(0);
-        errorResponse.setMessage("SolusSDK error");
-        errorBaseResponse.setResponse(errorResponse);
-        return errorBaseResponse;
-        }else {
-        	ErrorResponse errorResponse = errorBaseResponse.getResponse();
-        	 errorResponse = new ErrorResponse();
-             errorResponse.setCode(0);
-             errorResponse.setMessage("EBS Key error");
-             errorBaseResponse.setResponse(errorResponse);
-             return errorBaseResponse;
-        	
         }
     }
 
@@ -232,27 +218,33 @@ public class NOEBSClient implements ResponseData {
         String applicationId;
         String UUID;
         String tranDateTime;
-		public String getApplicationId() {
-			return applicationId;
-		}
-		public void setApplicationId(String applicationId) {
-			this.applicationId = applicationId;
-		}
-		public String getUUID() {
-			return UUID;
-		}
-		public void setUUID(String uUID) {
-			UUID = uUID;
-		}
-		public String getTranDateTime() {
-			return tranDateTime;
-		}
-		public void setTranDateTime(String tranDateTime) {
-			this.tranDateTime = tranDateTime;
-		}
-        
-    }
 
+        public String getApplicationId() {
+            return applicationId;
+        }
+
+        public void setApplicationId(String applicationId) {
+            this.applicationId = applicationId;
+        }
+
+        public String getUUID() {
+            return UUID;
+        }
+
+        public void setUUID(String uUID) {
+            UUID = uUID;
+        }
+
+        public String getTranDateTime() {
+            return tranDateTime;
+        }
+
+        public void setTranDateTime(String tranDateTime) {
+            this.tranDateTime = tranDateTime;
+        }
+
+    }
+}
 
 class Key {
     String applicationId;

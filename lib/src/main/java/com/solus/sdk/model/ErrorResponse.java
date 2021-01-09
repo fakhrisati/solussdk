@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ErrorResponse {
+public class ErrorResponse{
 
     private String message;
     private Integer code;
