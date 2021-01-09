@@ -31,22 +31,21 @@ import com.solus.sdk.noebscall.NOEBSClient;
 * */
 public class Library {
     public static void main(String[] args) {
-		Payment payment = new Payment("gdljdfslkgjf;lgks", "9222081700176714465", "2203", "0009", 1f,"0010050307");
+		Payment payment = new Payment("gdljdfslkgjf;lgks", "9222081700111111111", "2801", "1111", 1f,"12345678");
 		NOEBSClient noebsClient = new NOEBSClient();
 		BaseResponse<?> response = noebsClient.getResponse(payment);
 		Object object = response.getResponse();
 		if(object instanceof Response) {
 			System.out.println(true);
+			// handle response cases here
 		}else if(object instanceof ErrorResponse){
 			ErrorResponse err =(ErrorResponse)object;
 			System.out.println(err.getMessage());
 			 Map<String, String> details = err.getDetails();
 			if(!details.isEmpty())///if details not empty show messages
-				
 				 for(Map.Entry m:details.entrySet()){  
 					   System.out.println(m.getKey()+" : "+m.getValue());  
-					  }  
-		
+					  }
 			System.out.println(false);
 		}else {
 			System.out.println("Error");
