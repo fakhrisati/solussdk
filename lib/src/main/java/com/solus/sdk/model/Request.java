@@ -19,6 +19,7 @@ public class Request implements Serializable {
 	private String paymentInfo;
 	private String payeeId;
 
+
 	public String getPaymentInfo() {
 		return paymentInfo;
 	}

@@ -1,10 +1,13 @@
 package com.solus.sdk.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ErrorResponse {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ErrorResponse{
 
     private String message;
     private Integer code;
@@ -36,5 +39,5 @@ public void setDetails(Map<String, String> details) {
 	this.details = details;
 }
 
-   
+    
 }
