@@ -38,26 +38,21 @@ public class Response implements Serializable{
 		return responseMessage;
 	}
 
-
 	public void setResponseMessage(String responseMessage) {
 		this.responseMessage = responseMessage;
 	}
-
 
 	public String getResponseStatus() {
 		return responseStatus;
 	}
 
-
 	public void setResponseStatus(String responseStatus) {
 		this.responseStatus = responseStatus;
 	}
 
-
 	public Integer getResponseCode() {
 		return responseCode;
 	}
-
 
 	public void setResponseCode(Integer responseCode) {
 		this.responseCode = responseCode;

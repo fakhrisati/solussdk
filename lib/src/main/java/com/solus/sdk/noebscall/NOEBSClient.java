@@ -164,7 +164,7 @@ public class NOEBSClient implements ResponseData {
 
                 logger.info("gson response " + jsonObject.get("details").toString());
                 logger.info("ebs_error_502 is: " + responseBodey);
-                ErrorResponse errorResponse = mapper.readValue(jsonObject.get("details").toString(), ErrorResponse.class);
+                ErrorResponse errorResponse = mapper.readValue(responseBodey, ErrorResponse.class);
                 logger.info("error message: " + errorResponse.getMessage());
                 errorBaseResponse.setResponse(errorResponse);
                 return errorBaseResponse;
